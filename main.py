@@ -11,7 +11,7 @@ console = Console()
 
 # Load embedding and reranker model
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device="cpu", model_kwargs={"torch_dtype": torch.bfloat16}, tokenizer_kwargs={"padding_side": "left"})
+model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device=device, model_kwargs={"torch_dtype": torch.bfloat16}, tokenizer_kwargs={"padding_side": "left"})
 rerank_model = CrossEncoder("BAAI/bge-reranker-v2-m3", device=device, model_kwargs={"torch_dtype": torch.bfloat16}, tokenizer_kwargs={"padding_side": "left"})
 
 os.system('cls')
@@ -26,14 +26,26 @@ while True:
         # Create and embed query
         query = input("You: ")
         print("")
-        query_vector = model.encode(query, prompt_name="query").tolist()
+
+        hyde = chat(
+            model="qwen3:1.7b",
+            messages=[
+                {'role': 'user', 'content': f'Write a single paragraph in the style of a formal historical archive that answers the question: {query}. Do not use bullet points or headers. Focus on using descriptive, factual language that would likely appear in the source documents. If the user mentions dates, pay extra attention to days, months and years.'}
+            ],
+            options= {
+                "num_ctx": 2048,
+                "temperature": 0.8,
+                }
+        )['message']['content']
+
+        query_vector = model.encode(hyde, prompt_name="query").tolist()
 
         # Calculate similarity
         results = collection.query(
             query_embeddings=[query_vector],
             n_results=30
         )
-
+        
         chunks = results['documents'][0]
 
         pairs = [[query, chunk] for chunk in chunks]
@@ -66,7 +78,7 @@ while True:
                 {"role": "user", "content": prompt}],
             options={
                 "num_ctx": 2048,
-                "temperature": 0.5,
+                "temperature": 0.2,
                 },
             stream=False
         )
