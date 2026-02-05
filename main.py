@@ -38,11 +38,11 @@ while True:
                 }
         )['message']['content']
 
-        query_vector = model.encode(hyde, prompt_name="query").tolist()
+        query_vector = model.encode(hyde, prompt_name="query")
 
         # Calculate similarity
         results = collection.query(
-            query_embeddings=[query_vector],
+            query_embeddings=query_vector,
             n_results=30
         )
         
