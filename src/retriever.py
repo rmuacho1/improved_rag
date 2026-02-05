@@ -22,11 +22,11 @@ chunks = splitter.split_text(full_text)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device=device, model_kwargs={"torch_dtype": torch.bfloat16})
 
-all_embeddings = model.encode(chunks, show_progress_bar=True).tolist()
+all_embeddings = model.encode(chunks, show_progress_bar=True)
 
-for i,chunk in enumerate(chunks):
-    collection.add(
-        ids=[str(i)],
-        documents=[chunk],
-        embeddings=[all_embeddings[i]]
-    )
+
+collection.add(
+    ids=[str(i) for i in range(len(chunks))],
+    documents=chunks,
+    embeddings=all_embeddings
+)
