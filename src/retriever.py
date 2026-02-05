@@ -24,7 +24,6 @@ model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device=device, model_kw
 
 all_embeddings = model.encode(chunks, show_progress_bar=True)
 
-
 collection.add(
     ids=[str(i) for i in range(len(chunks))],
     documents=chunks,
